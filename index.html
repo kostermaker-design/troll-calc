@@ -49,7 +49,7 @@
         }
         .radio-grid {
             display: flex;
-            gap: 6px;
+            gap: 3px;
         }
         .radio-option {
             flex: 1;
@@ -62,11 +62,11 @@
         }
         .radio-option label {
             display: block;
-            padding: 10px 4px;
+            padding: 8px 1px;
             border: 1px solid #cbd5e1;
             background-color: #f8fafc;
             border-radius: 6px;
-            font-size: 0.9rem;
+            font-size: 0.75rem;
             font-weight: 600;
             text-align: center;
             cursor: pointer;
@@ -85,11 +85,27 @@
             border-radius: 6px;
             text-align: center;
         }
+        .result-row {
+            margin-bottom: 12px;
+        }
+        .result-row:last-child {
+            margin-bottom: 0;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 12px;
+        }
+        .result-label {
+            font-size: 0.85rem;
+            color: #64748b;
+            font-weight: 600;
+        }
         .result-value {
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: bold;
             color: #2563eb;
-            margin-top: 4px;
+            margin-top: 2px;
+        }
+        .result-value.total {
+            color: #1e293b;
         }
         .error-msg {
             color: #dc2626;
@@ -152,9 +168,65 @@
         </div>
     </div>
 
+    <div class="form-group">
+        <label class="main-label">Rod Tip Height Over Water (H in ft):</label>
+        <div class="radio-grid" id="heightGroup">
+            <div class="radio-option">
+                <input type="radio" id="h0" name="height" value="0" onchange="calculateLineOut()">
+                <label for="h0">0</label>
+            </div>
+            <div class="radio-option">
+                <input type="radio" id="h1" name="height" value="1" onchange="calculateLineOut()">
+                <label for="h1">1</label>
+            </div>
+            <div class="radio-option">
+                <input type="radio" id="h2" name="height" value="2" onchange="calculateLineOut()">
+                <label for="h2">2</label>
+            </div>
+            <div class="radio-option">
+                <input type="radio" id="h3" name="height" value="3" checked onchange="calculateLineOut()">
+                <label for="h3">3</label>
+            </div>
+            <div class="radio-option">
+                <input type="radio" id="h4" name="height" value="4" onchange="calculateLineOut()">
+                <label for="h4">4</label>
+            </div>
+            <div class="radio-option">
+                <input type="radio" id="h5" name="height" value="5" onchange="calculateLineOut()">
+                <label for="h5">5</label>
+            </div>
+            <div class="radio-option">
+                <input type="radio" id="h6" name="height" value="6" onchange="calculateLineOut()">
+                <label for="h6">6</label>
+            </div>
+            <div class="radio-option">
+                <input type="radio" id="h7" name="height" value="7" onchange="calculateLineOut()">
+                <label for="h7">7</label>
+            </div>
+            <div class="radio-option">
+                <input type="radio" id="h8" name="height" value="8" onchange="calculateLineOut()">
+                <label for="h8">8</label>
+            </div>
+            <div class="radio-option">
+                <input type="radio" id="h9" name="height" value="9" onchange="calculateLineOut()">
+                <label for="h9">9</label>
+            </div>
+            <div class="radio-option">
+                <input type="radio" id="h10" name="height" value="10" onchange="calculateLineOut()">
+                <label for="h10">10</label>
+            </div>
+        </div>
+    </div>
+
     <div class="result-box">
-        <div>Required Line in Water (L)</div>
-        <div class="result-value" id="resultText">-- ft</div>
+        <div class="result-row">
+            <div class="result-label">Line in Water (L)</div>
+            <div class="result-value" id="resultL">-- ft</div>
+        </div>
+        <div class="result-row">
+            <div class="result-label">True Total Line Out (Reel to Sinker)</div>
+            <div class="result-value total" id="resultTotal">-- ft</div>
+        </div>
         <div id="errorText" class="error-msg"></div>
     </div>
 </div>
@@ -163,23 +235,26 @@
 function calculateLineOut() {
     const D = parseFloat(document.getElementById('targetDepth').value);
     
-    // Grab value from whichever radio button is checked
     const selectedWeight = document.querySelector('input[name="weight"]:checked');
     const selectedSpeed = document.querySelector('input[name="speed"]:checked');
+    const selectedHeight = document.querySelector('input[name="height"]:checked');
     
-    const resultEl = document.getElementById('resultText');
+    const resultLEl = document.getElementById('resultL');
+    const resultTotalEl = document.getElementById('resultTotal');
     const errorEl = document.getElementById('errorText');
     
     errorEl.textContent = "";
 
-    if (isNaN(D) || D <= 0 || !selectedWeight || !selectedSpeed) {
-        resultEl.textContent = "-- ft";
+    if (isNaN(D) || D <= 0 || !selectedWeight || !selectedSpeed || !selectedHeight) {
+        resultLEl.textContent = "-- ft";
+        resultTotalEl.textContent = "-- ft";
         errorEl.textContent = "Please complete all fields.";
         return;
     }
 
     const B = parseFloat(selectedWeight.value);
     const S = parseFloat(selectedSpeed.value);
+    const H = parseFloat(selectedHeight.value);
 
     const a = 0.73 - (0.075 / B);
     const b = 0.0022 - (0.0002 / B);
@@ -187,23 +262,30 @@ function calculateLineOut() {
     const termInsideSqrt = (a * a) - (4 * b * (D * (S * S)));
 
     if (termInsideSqrt < 0) {
-        resultEl.textContent = "Unreachable";
+        resultLEl.textContent = "Unreachable";
+        resultTotalEl.textContent = "Unreachable";
         errorEl.textContent = "Target depth is too deep for this weight and speed combination.";
         return;
     }
 
     const L = (a - Math.sqrt(termInsideSqrt)) / (2 * b);
 
-    if (L < 0 || L > 250) {
-        resultEl.textContent = "Out of range";
+    if (L < 0 || L > 300) {
+        resultLEl.textContent = "Out of range";
+        resultTotalEl.textContent = "Out of range";
         errorEl.textContent = "Calculated line length exceeds reliable limits.";
         return;
     }
 
-    resultEl.textContent = L.toFixed(1) + " ft";
+    const slopeAtSurface = Math.max(0.1, (2 * b * L) - a);
+    const theta = Math.atan(slopeAtSurface); 
+    const A = H > 0 ? H / Math.sin(theta) : 0;
+    const totalLineOut = L + A;
+
+    resultLEl.textContent = L.toFixed(1) + " ft";
+    resultTotalEl.textContent = totalLineOut.toFixed(1) + " ft";
 }
 
-// Run initial calculation on load
 window.onload = calculateLineOut;
 </script>
 
