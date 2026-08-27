@@ -47,23 +47,23 @@
             border-color: #3b82f6;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
         }
-        .speed-selector {
+        .selector-grid {
             display: flex;
-            gap: 8px;
+            gap: 6px;
         }
-        .speed-btn {
+        .select-btn {
             flex: 1;
-            padding: 10px;
+            padding: 8px 4px;
             border: 1px solid #cbd5e1;
             background-color: #f8fafc;
             border-radius: 6px;
-            font-size: 1rem;
+            font-size: 0.9rem;
             font-weight: 600;
             cursor: pointer;
             text-align: center;
             transition: all 0.2s;
         }
-        .speed-btn.active {
+        .select-btn.active {
             background-color: #2563eb;
             color: white;
             border-color: #2563eb;
@@ -112,26 +112,30 @@
     
     <div class="form-group">
         <label for="targetDepth">Target Depth (D in feet):</label>
-        <input type="number" id="targetDepth" step="0.5" value="25" min="1" max="50">
+        <input type="number" id="targetDepth" step="0.5" value="25" min="1" max="50" oninput="calculateLineOut()">
     </div>
 
     <div class="form-group">
-        <label for="sinkerWeight">Sinker Weight (B in ounces):</label>
-        <input type="number" id="sinkerWeight" step="0.125" value="0.5" min="0.125" max="2.0">
-        <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Range: 1/8 oz (0.125) to 2 oz</div>
+        <label>Sinker Weight (B in oz):</label>
+        <div class="selector-grid">
+            <button type="button" class="select-btn" onclick="setWeight(0.125)">1/8</button>
+            <button type="button" class="select-btn" onclick="setWeight(0.25)">1/4</button>
+            <button type="button" class="select-btn active" onclick="setWeight(0.5)">1/2</button>
+            <button type="button" class="select-btn" onclick="setWeight(0.75)">3/4</button>
+            <button type="button" class="select-btn" onclick="setWeight(1.0)">1</button>
+        </div>
+        <input type="hidden" id="sinkerWeight" value="0.5">
     </div>
 
     <div class="form-group">
         <label>Speed (S in mph):</label>
-        <div class="speed-selector">
-            <button type="button" class="speed-btn" onclick="setSpeed(0.8)">0.8</button>
-            <button type="button" class="speed-btn" onclick="setSpeed(0.9)">0.9</button>
-            <button type="button" class="speed-btn active" onclick="setSpeed(1.0)">1.0</button>
+        <div class="selector-grid">
+            <button type="button" class="select-btn" onclick="setSpeed(0.8)">0.8</button>
+            <button type="button" class="select-btn" onclick="setSpeed(0.9)">0.9</button>
+            <button type="button" class="select-btn active" onclick="setSpeed(1.0)">1.0</button>
         </div>
         <input type="hidden" id="trollingSpeed" value="1.0">
     </div>
-
-    <button class="calc-btn" onclick="calculateLineOut()">Calculate Line Out</button>
 
     <div class="result-box">
         <div>Required Line in Water (L)</div>
@@ -141,15 +145,35 @@
 </div>
 
 <script>
+let currentWeight = 0.5;
 let currentSpeed = 1.0;
+
+function setWeight(weight) {
+    currentWeight = weight;
+    document.getElementById('sinkerWeight').value = weight;
+    
+    // Update weight button states
+    const weightBtns = document.querySelectorAll('.form-group:nth-child(2) .select-btn');
+    weightBtns.forEach(btn => {
+        // Match button text fraction to decimal value
+        const valMap = { "1/8": 0.125, "1/4": 0.25, "1/2": 0.5, "3/4": 0.75, "1": 1.0 };
+        if (valMap[btn.textContent] === weight) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
+    calculateLineOut();
+}
 
 function setSpeed(speed) {
     currentSpeed = speed;
     document.getElementById('trollingSpeed').value = speed;
     
-    // Update button active states
-    const buttons = document.querySelectorAll('.speed-btn');
-    buttons.forEach(btn => {
+    // Update speed button states
+    const speedBtns = document.querySelectorAll('.form-group:nth-child(3) .select-btn');
+    speedBtns.forEach(btn => {
         if (parseFloat(btn.textContent) === speed) {
             btn.classList.add('active');
         } else {
@@ -162,7 +186,7 @@ function setSpeed(speed) {
 
 function calculateLineOut() {
     const D = parseFloat(document.getElementById('targetDepth').value);
-    const B = parseFloat(document.getElementById('sinkerWeight').value);
+    const B = currentWeight;
     const S = currentSpeed;
     
     const resultEl = document.getElementById('resultText');
@@ -170,9 +194,9 @@ function calculateLineOut() {
     
     errorEl.textContent = "";
 
-    if (isNaN(D) || isNaN(B) || D <= 0 || B <= 0) {
+    if (isNaN(D) || D <= 0) {
         resultEl.textContent = "-- ft";
-        errorEl.textContent = "Please enter valid positive numbers.";
+        errorEl.textContent = "Please enter a valid target depth.";
         return;
     }
 
