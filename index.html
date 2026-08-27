@@ -283,7 +283,7 @@ function calculateLineOut() {
     const totalLineOut = L + A;
 
     resultLEl.textContent = L.toFixed(1) + " ft";
-    resultTotalEl.textContent = totalLineOut.toFixed(1) + " ft";
+    resultTotalEl.textContent = Math.round(totalLineOut) + " ft"; // Rounded to whole number
 }
 
 window.onload = calculateLineOut;
