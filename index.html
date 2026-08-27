@@ -47,7 +47,28 @@
             border-color: #3b82f6;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
         }
-        button {
+        .speed-selector {
+            display: flex;
+            gap: 8px;
+        }
+        .speed-btn {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            background-color: #f8fafc;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .speed-btn.active {
+            background-color: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+        button.calc-btn {
             width: 100%;
             background-color: #2563eb;
             color: white;
@@ -60,7 +81,7 @@
             margin-top: 10px;
             transition: background-color 0.2s;
         }
-        button:hover {
+        button.calc-btn:hover {
             background-color: #1d4ed8;
         }
         .result-box {
@@ -101,12 +122,16 @@
     </div>
 
     <div class="form-group">
-        <label for="trollingSpeed">Speed (S in mph):</label>
-        <input type="number" id="trollingSpeed" step="0.1" value="1.0" min="0.8" max="1.0">
-        <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Optimized range: 0.8 to 1.0 mph</div>
+        <label>Speed (S in mph):</label>
+        <div class="speed-selector">
+            <button type="button" class="speed-btn" onclick="setSpeed(0.8)">0.8</button>
+            <button type="button" class="speed-btn" onclick="setSpeed(0.9)">0.9</button>
+            <button type="button" class="speed-btn active" onclick="setSpeed(1.0)">1.0</button>
+        </div>
+        <input type="hidden" id="trollingSpeed" value="1.0">
     </div>
 
-    <button onclick="calculateLineOut()">Calculate Line Out</button>
+    <button class="calc-btn" onclick="calculateLineOut()">Calculate Line Out</button>
 
     <div class="result-box">
         <div>Required Line in Water (L)</div>
@@ -116,18 +141,36 @@
 </div>
 
 <script>
+let currentSpeed = 1.0;
+
+function setSpeed(speed) {
+    currentSpeed = speed;
+    document.getElementById('trollingSpeed').value = speed;
+    
+    // Update button active states
+    const buttons = document.querySelectorAll('.speed-btn');
+    buttons.forEach(btn => {
+        if (parseFloat(btn.textContent) === speed) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
+    calculateLineOut();
+}
+
 function calculateLineOut() {
     const D = parseFloat(document.getElementById('targetDepth').value);
     const B = parseFloat(document.getElementById('sinkerWeight').value);
-    const S = parseFloat(document.getElementById('trollingSpeed').value);
+    const S = currentSpeed;
     
     const resultEl = document.getElementById('resultText');
     const errorEl = document.getElementById('errorText');
     
     errorEl.textContent = "";
 
-    // Validation checks
-    if (isNaN(D) || isNaN(B) || isNaN(S) || D <= 0 || B <= 0 || S <= 0) {
+    if (isNaN(D) || isNaN(B) || D <= 0 || B <= 0) {
         resultEl.textContent = "-- ft";
         errorEl.textContent = "Please enter valid positive numbers.";
         return;
@@ -137,10 +180,7 @@ function calculateLineOut() {
     const a = 0.73 - (0.075 / B);
     const b = 0.0022 - (0.0002 / B);
 
-    // Quadratic formula components to solve for L: 
-    // Equation form: b*L^2 - a*L + (D * S^2) = 0
-    // Quadratic equation: L = (a - sqrt(a^2 - 4 * b * (D * S^2))) / (2 * b)
-    
+    // Quadratic formula components to solve for L
     const termInsideSqrt = (a * a) - (4 * b * (D * (S * S)));
 
     if (termInsideSqrt < 0) {
