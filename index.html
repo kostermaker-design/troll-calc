@@ -68,22 +68,6 @@
             color: white;
             border-color: #2563eb;
         }
-        button.calc-btn {
-            width: 100%;
-            background-color: #2563eb;
-            color: white;
-            border: none;
-            padding: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            border-radius: 6px;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: background-color 0.2s;
-        }
-        button.calc-btn:hover {
-            background-color: #1d4ed8;
-        }
         .result-box {
             margin-top: 24px;
             background: #f8fafc;
@@ -112,7 +96,7 @@
     
     <div class="form-group">
         <label for="targetDepth">Target Depth (D in feet):</label>
-        <input type="number" id="targetDepth" step="0.5" value="25" min="1" max="50" oninput="calculateLineOut()">
+        <input type="number" id="targetDepth" step="0.5" value="40" min="1" max="100" oninput="calculateLineOut()">
     </div>
 
     <div class="form-group">
@@ -152,10 +136,8 @@ function setWeight(weight) {
     currentWeight = weight;
     document.getElementById('sinkerWeight').value = weight;
     
-    // Update weight button states
     const weightBtns = document.querySelectorAll('.form-group:nth-child(2) .select-btn');
     weightBtns.forEach(btn => {
-        // Match button text fraction to decimal value
         const valMap = { "1/8": 0.125, "1/4": 0.25, "1/2": 0.5, "3/4": 0.75, "1": 1.0 };
         if (valMap[btn.textContent] === weight) {
             btn.classList.add('active');
@@ -171,7 +153,6 @@ function setSpeed(speed) {
     currentSpeed = speed;
     document.getElementById('trollingSpeed').value = speed;
     
-    // Update speed button states
     const speedBtns = document.querySelectorAll('.form-group:nth-child(3) .select-btn');
     speedBtns.forEach(btn => {
         if (parseFloat(btn.textContent) === speed) {
@@ -200,11 +181,9 @@ function calculateLineOut() {
         return;
     }
 
-    // Physics coefficients based on our finalized model
     const a = 0.73 - (0.075 / B);
     const b = 0.0022 - (0.0002 / B);
 
-    // Quadratic formula components to solve for L
     const termInsideSqrt = (a * a) - (4 * b * (D * (S * S)));
 
     if (termInsideSqrt < 0) {
