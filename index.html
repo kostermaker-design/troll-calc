@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trolling Depth Calculator</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f6f8;
+            color: #333;
+            max-width: 500px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        .card {
+            background: #ffffff;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        h2 {
+            margin-top: 0;
+            color: #1a365d;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+        button {
+            width: 100%;
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #1d4ed8;
+        }
+        .result-box {
+            margin-top: 24px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 16px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .result-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2563eb;
+            margin-top: 4px;
+        }
+        .error-msg {
+            color: #dc2626;
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Trolling Line Calculator</h2>
+    
+    <div class="form-group">
+        <label for="targetDepth">Target Depth (D in feet):</label>
+        <input type="number" id="targetDepth" step="0.5" value="25" min="1" max="50">
+    </div>
+
+    <div class="form-group">
+        <label for="sinkerWeight">Sinker Weight (B in ounces):</label>
+        <input type="number" id="sinkerWeight" step="0.125" value="0.5" min="0.125" max="2.0">
+        <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Range: 1/8 oz (0.125) to 2 oz</div>
+    </div>
+
+    <div class="form-group">
+        <label for="trollingSpeed">Speed (S in mph):</label>
+        <input type="number" id="trollingSpeed" step="0.1" value="1.0" min="0.8" max="1.0">
+        <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Optimized range: 0.8 to 1.0 mph</div>
+    </div>
+
+    <button onclick="calculateLineOut()">Calculate Line Out</button>
+
+    <div class="result-box">
+        <div>Required Line in Water (L)</div>
+        <div class="result-value" id="resultText">-- ft</div>
+        <div id="errorText" class="error-msg"></div>
+    </div>
+</div>
+
+<script>
+function calculateLineOut() {
+    const D = parseFloat(document.getElementById('targetDepth').value);
+    const B = parseFloat(document.getElementById('sinkerWeight').value);
+    const S = parseFloat(document.getElementById('trollingSpeed').value);
+    
+    const resultEl = document.getElementById('resultText');
+    const errorEl = document.getElementById('errorText');
+    
+    errorEl.textContent = "";
+
+    // Validation checks
+    if (isNaN(D) || isNaN(B) || isNaN(S) || D <= 0 || B <= 0 || S <= 0) {
+        resultEl.textContent = "-- ft";
+        errorEl.textContent = "Please enter valid positive numbers.";
+        return;
+    }
+
+    // Physics coefficients based on our finalized model
+    const a = 0.73 - (0.075 / B);
+    const b = 0.0022 - (0.0002 / B);
+
+    // Quadratic formula components to solve for L: 
+    // Equation form: b*L^2 - a*L + (D * S^2) = 0
+    // Quadratic equation: L = (a - sqrt(a^2 - 4 * b * (D * S^2))) / (2 * b)
+    
+    const termInsideSqrt = (a * a) - (4 * b * (D * (S * S)));
+
+    if (termInsideSqrt < 0) {
+        resultEl.textContent = "Unreachable";
+        errorEl.textContent = "Target depth is too deep for this weight and speed combination.";
+        return;
+    }
+
+    const L = (a - Math.sqrt(termInsideSqrt)) / (2 * b);
+
+    if (L < 0 || L > 250) {
+        resultEl.textContent = "Out of range";
+        errorEl.textContent = "Calculated line length exceeds reliable limits.";
+        return;
+    }
+
+    resultEl.textContent = L.toFixed(1) + " ft";
+}
+
+// Run initial calculation on load
+window.onload = calculateLineOut;
+</script>
+
+</body>
+</html>
