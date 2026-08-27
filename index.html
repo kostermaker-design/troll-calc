@@ -101,24 +101,22 @@
 
     <div class="form-group">
         <label>Sinker Weight (B in oz):</label>
-        <div class="selector-grid">
-            <button type="button" class="select-btn" onclick="setWeight(0.125)">1/8</button>
-            <button type="button" class="select-btn" onclick="setWeight(0.25)">1/4</button>
-            <button type="button" class="select-btn active" onclick="setWeight(0.5)">1/2</button>
-            <button type="button" class="select-btn" onclick="setWeight(0.75)">3/4</button>
-            <button type="button" class="select-btn" onclick="setWeight(1.0)">1</button>
+        <div class="selector-grid" id="weightGroup">
+            <button type="button" class="select-btn" onclick="setWeight(0.125, this)">1/8</button>
+            <button type="button" class="select-btn" onclick="setWeight(0.25, this)">1/4</button>
+            <button type="button" class="select-btn active" onclick="setWeight(0.5, this)">1/2</button>
+            <button type="button" class="select-btn" onclick="setWeight(0.75, this)">3/4</button>
+            <button type="button" class="select-btn" onclick="setWeight(1.0, this)">1</button>
         </div>
-        <input type="hidden" id="sinkerWeight" value="0.5">
     </div>
 
     <div class="form-group">
         <label>Speed (S in mph):</label>
-        <div class="selector-grid">
-            <button type="button" class="select-btn" onclick="setSpeed(0.8)">0.8</button>
-            <button type="button" class="select-btn" onclick="setSpeed(0.9)">0.9</button>
-            <button type="button" class="select-btn active" onclick="setSpeed(1.0)">1.0</button>
+        <div class="selector-grid" id="speedGroup">
+            <button type="button" class="select-btn" onclick="setSpeed(0.8, this)">0.8</button>
+            <button type="button" class="select-btn" onclick="setSpeed(0.9, this)">0.9</button>
+            <button type="button" class="select-btn active" onclick="setSpeed(1.0, this)">1.0</button>
         </div>
-        <input type="hidden" id="trollingSpeed" value="1.0">
     </div>
 
     <div class="result-box">
@@ -132,35 +130,24 @@
 let currentWeight = 0.5;
 let currentSpeed = 1.0;
 
-function setWeight(weight) {
+function setWeight(weight, btnElement) {
     currentWeight = weight;
-    document.getElementById('sinkerWeight').value = weight;
     
-    const weightBtns = document.querySelectorAll('.form-group:nth-child(2) .select-btn');
-    weightBtns.forEach(btn => {
-        const valMap = { "1/8": 0.125, "1/4": 0.25, "1/2": 0.5, "3/4": 0.75, "1": 1.0 };
-        if (valMap[btn.textContent] === weight) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
-    });
+    // Remove active class from all weight buttons, add to clicked one
+    const weightBtns = document.querySelectorAll('#weightGroup .select-btn');
+    weightBtns.forEach(btn => btn.classList.remove('active'));
+    btnElement.classList.add('active');
 
     calculateLineOut();
 }
 
-function setSpeed(speed) {
+function setSpeed(speed, btnElement) {
     currentSpeed = speed;
-    document.getElementById('trollingSpeed').value = speed;
     
-    const speedBtns = document.querySelectorAll('.form-group:nth-child(3) .select-btn');
-    speedBtns.forEach(btn => {
-        if (parseFloat(btn.textContent) === speed) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
-    });
+    // Remove active class from all speed buttons, add to clicked one
+    const speedBtns = document.querySelectorAll('#speedGroup .select-btn');
+    speedBtns.forEach(btn => btn.classList.remove('active'));
+    btnElement.classList.add('active');
 
     calculateLineOut();
 }
