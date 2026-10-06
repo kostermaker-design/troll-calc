@@ -260,15 +260,9 @@ function calculateLineOut() {
     const S = parseFloat(selectedSpeed.value);
     const H = parseFloat(selectedHeight.value);
 
-    let a, b;
-    if (B === 1.5) {
-        // Natural mathematical continuation of your existing a and b coefficient curves
-        a = 0.73 - (0.075 / 1.25); 
-        b = 0.0022 - (0.0002 / 1.25);
-    } else {
-        a = 0.73 - (0.075 / B);
-        b = 0.0022 - (0.0002 / B);
-    }
+    // Correctly apply standard weight coefficients across all sizes including 1.5oz
+    const a = 0.73 - (0.075 / B);
+    const b = 0.0022 - (0.0002 / B);
 
     const termInsideSqrt = (a * a) - (4 * b * (D * (S * S)));
 
@@ -294,7 +288,7 @@ function calculateLineOut() {
     const totalLineOut = L + A;
 
     resultLEl.textContent = L.toFixed(1) + " ft";
-    resultTotalEl.textContent = Math.round(totalLineOut) + " ft"; // Rounded to whole number
+    resultTotalEl.textContent = Math.round(totalLineOut) + " ft"; 
 }
 
 window.onload = calculateLineOut;
