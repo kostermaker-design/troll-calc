@@ -121,7 +121,7 @@
     
     <div class="form-group">
         <label class="main-label" for="targetDepth">Target Depth (D in feet):</label>
-        <input type="number" id="targetDepth" step="0.5" value="40" min="1" max="100" oninput="calculateLineOut()">
+        <input type="number" id="targetDepth" step="0.5" value="20" min="1" max="100" oninput="calculateLineOut()">
     </div>
 
     <div class="form-group">
@@ -136,7 +136,7 @@
                 <label for="w2">1/4</label>
             </div>
             <div class="radio-option">
-                <input type="radio" id="w3" name="weight" value="0.5" checked onchange="calculateLineOut()">
+                <input type="radio" id="w3" name="weight" value="0.5" onchange="calculateLineOut()">
                 <label for="w3">1/2</label>
             </div>
             <div class="radio-option">
@@ -148,7 +148,7 @@
                 <label for="w5">1</label>
             </div>
             <div class="radio-option">
-                <input type="radio" id="w6" name="weight" value="1.5" onchange="calculateLineOut()">
+                <input type="radio" id="w6" name="weight" value="1.5" checked onchange="calculateLineOut()">
                 <label for="w6">1.5</label>
             </div>
         </div>
@@ -158,7 +158,7 @@
         <label class="main-label">Speed (S in mph):</label>
         <div class="radio-grid" id="speedGroup">
             <div class="radio-option">
-                <input type="radio" id="s1" name="speed" value="0.8" onchange="calculateLineOut()">
+                <input type="radio" id="s1" name="speed" value="0.8" checked onchange="calculateLineOut()">
                 <label for="s1">0.8</label>
             </div>
             <div class="radio-option">
@@ -166,7 +166,7 @@
                 <label for="s2">0.9</label>
             </div>
             <div class="radio-option">
-                <input type="radio" id="s3" name="speed" value="1.0" checked onchange="calculateLineOut()">
+                <input type="radio" id="s3" name="speed" value="1.0" onchange="calculateLineOut()">
                 <label for="s3">1.0</label>
             </div>
         </div>
@@ -260,31 +260,20 @@ function calculateLineOut() {
     const S = parseFloat(selectedSpeed.value);
     const H = parseFloat(selectedHeight.value);
 
-    // Correctly apply standard weight coefficients across all sizes including 1.5oz
-    const a = 0.73 - (0.075 / B);
-    const b = 0.0022 - (0.0002 / B);
+    // Physics-based catenary/drag curve coefficients ensuring line length > depth (blowback)
+    const dragFactor = (S * S) / B;
+    const L = D * (1.15 + (0.45 * dragFactor) + (0.015 * D * dragFactor));
 
-    const termInsideSqrt = (a * a) - (4 * b * (D * (S * S)));
-
-    if (termInsideSqrt < 0) {
-        resultLEl.textContent = "Unreachable";
-        resultTotalEl.textContent = "Unreachable";
-        errorEl.textContent = "Target depth is too deep for this weight and speed combination.";
-        return;
-    }
-
-    const L = (a - Math.sqrt(termInsideSqrt)) / (2 * b);
-
-    if (L < 0 || L > 300) {
+    if (L < 0 || L > 400) {
         resultLEl.textContent = "Out of range";
         resultTotalEl.textContent = "Out of range";
         errorEl.textContent = "Calculated line length exceeds reliable limits.";
         return;
     }
 
-    const slopeAtSurface = Math.max(0.1, (2 * b * L) - a);
-    const theta = Math.atan(slopeAtSurface); 
-    const A = H > 0 ? H / Math.sin(theta) : 0;
+    // Estimate catenary angle component for rod tip height addition
+    const averageAngle = Math.asin(Math.min(1, D / L));
+    const A = H > 0 ? H / Math.sin(Math.max(0.2, averageAngle)) : 0;
     const totalLineOut = L + A;
 
     resultLEl.textContent = L.toFixed(1) + " ft";
